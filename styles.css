@@ -114,6 +114,7 @@ body{
   border:1px solid #d6e0e4; border-radius:11px; background:#fff; color: var(--ink);
   transition: border-color .15s, box-shadow .15s;
 }
+.field input::placeholder{ color:#b3bdb9; opacity:1; }
 .field input:focus{ outline:none; border-color: var(--clay); box-shadow: var(--ring); }
 .auth-form .btn-primary{ margin-top:6px; }
 .auth-msg{ margin:4px 2px 0; font-size:13.5px; min-height:18px; }

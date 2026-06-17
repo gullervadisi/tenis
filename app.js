@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  onAuthStateChanged, signOut
+  onAuthStateChanged, signOut, setPersistence, browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, collection, doc, getDoc, setDoc, deleteDoc,
@@ -27,6 +27,8 @@ try {
   }
   app = initializeApp(window.GV_FIREBASE);
   auth = getAuth(app);
+  // Cihazı hatırla: bir kez giriş yapınca tekrar şifre sormaz (çıkış yapana kadar).
+  setPersistence(auth, browserLocalPersistence).catch(() => {});
   db = getFirestore(app);
 } catch (e) {
   document.getElementById("auth-msg").textContent = "Ayar eksik: " + e.message;
@@ -319,6 +321,17 @@ async function reserve() {
   const btn = $("reserve-btn"); btn.disabled = true;
   const hrs = state.selection.slice().sort((a, b) => a - b);
   const date = state.selectedDate;
+
+  // Günlük sınır: bir kişi aynı günde en fazla 2 saat tutabilir.
+  const myHoursToday = Array.from(state.reservations.values())
+    .filter((r) => r.date === date && r.uid === state.user.uid).length;
+  if (myHoursToday + hrs.length > 2) {
+    toast("Aynı gün en fazla 2 saat rezerve edebilirsin" +
+      (myHoursToday ? " (bugün zaten " + myHoursToday + " saatin var)." : "."), true);
+    btn.disabled = state.selection.length === 0;
+    return;
+  }
+
   try {
     await runTransaction(db, async (tx) => {
       const refs = hrs.map((h) => doc(db, "reservations", slotId(date, h)));
