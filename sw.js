@@ -1,14 +1,8 @@
-// Basit PWA service worker — uygulama kabuğunu önbelleğe alır.
-const CACHE = "gv-tenis-v1";
+// PWA service worker — ağ-öncelikli (güncellemeler her zaman gelir, çevrimdışıyken önbellekten).
+const CACHE = "gv-tenis-v2";
 const ASSETS = [
-  "./",
-  "./index.html",
-  "./styles.css",
-  "./app.js",
-  "./config.js",
-  "./manifest.webmanifest",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./", "./index.html", "./styles.css", "./app.js", "./config.js",
+  "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png"
 ];
 
 self.addEventListener("install", (e) => {
@@ -24,9 +18,14 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
-  // Supabase ve diğer API çağrıları her zaman ağdan gitsin (önbelleğe alma)
+  // Firebase / dış kaynaklar her zaman ağdan
   if (url.origin !== self.location.origin) return;
+  // Kendi dosyalarımız: önce ağ, başarısızsa önbellek
   e.respondWith(
-    caches.match(e.request).then((hit) => hit || fetch(e.request))
+    fetch(e.request).then((resp) => {
+      const copy = resp.clone();
+      caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+      return resp;
+    }).catch(() => caches.match(e.request))
   );
 });

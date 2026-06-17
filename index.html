@@ -33,31 +33,32 @@
         <div class="court-mark" aria-hidden="true"></div>
         <p class="auth-eyebrow">BEN GÜLLER VADİSİ SİTESİ</p>
         <h1 class="auth-title">Tenis Kortu<br />Rezervasyon</h1>
-        <p class="auth-sub">Çakışma olmasın diye herkes önceden buradan rezerve eder. Giriş yapmak için e-posta ve şifreni kullan.</p>
+        <p class="auth-sub">Çakışma olmasın diye herkes önceden buradan rezerve eder. Giriş için kapı numaran ve 4 haneli şifren yeterli.</p>
 
         <div class="tabs" role="tablist">
           <button class="tab is-active" id="tab-login" type="button" role="tab">Giriş yap</button>
           <button class="tab" id="tab-register" type="button" role="tab">Kayıt ol</button>
         </div>
 
-        <form class="auth-form" id="auth-form" autocomplete="on">
-          <label class="field">
+        <form class="auth-form" id="auth-form" autocomplete="off">
+          <label class="field" id="email-field" hidden>
             <span>E-posta</span>
-            <input type="email" id="f-email" required placeholder="ornek@eposta.com" autocomplete="email" />
+            <input type="email" id="f-email" placeholder="ornek@eposta.com" autocomplete="email" />
           </label>
 
           <label class="field">
-            <span>Şifre</span>
-            <input type="password" id="f-password" required minlength="6" placeholder="En az 6 karakter" autocomplete="current-password" />
+            <span>Kapı / Daire numarası</span>
+            <input type="text" id="f-door" placeholder="8B" inputmode="text" maxlength="6" autocomplete="off" />
           </label>
 
-          <label class="field" id="door-field" hidden>
-            <span>Kapı / Daire numarası</span>
-            <input type="text" id="f-door" placeholder="Örn: 12 veya B-7" inputmode="text" maxlength="12" />
+          <label class="field">
+            <span>Şifre (4 haneli)</span>
+            <input type="password" id="f-password" placeholder="••••" inputmode="numeric" maxlength="4" autocomplete="off" />
           </label>
 
           <button class="btn-primary" id="auth-submit" type="submit">Giriş yap</button>
           <p class="auth-msg" id="auth-msg" role="status"></p>
+          <p class="footnote" id="login-foot" style="margin-top:8px;">Şifreni unuttuysan site yöneticisine başvur.</p>
         </form>
       </div>
       <p class="footnote">Sitemizdeki kort 07:00–23:00 arası, haftanın 7 günü açıktır.</p>
