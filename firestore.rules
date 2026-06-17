@@ -1,0 +1,47 @@
+rules_version = '2';
+
+// =====================================================================
+//  GÜLLER VADİSİ — Tenis Kortu Rezervasyon  |  Firestore Güvenlik Kuralları
+//  Firebase Console > Firestore Database > Rules sekmesine yapıştır > Publish
+// =====================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function girisli() { return request.auth != null; }
+
+    // --- Profiller (kapı numarası) ---
+    // Kişi yalnızca kendi profilini görür ve yazar.
+    match /users/{uid} {
+      allow read:          if girisli() && request.auth.uid == uid;
+      allow create, update: if girisli() && request.auth.uid == uid;
+      allow delete:        if false;
+    }
+
+    // --- Rezervasyonlar ---
+    // Belge kimliği "TARİH_SAAT" biçimindedir (örn. 2026-06-18_10).
+    // Bu kimlik benzersiz olduğu için aynı gün+saat ikinci kez OLUŞTURULAMAZ
+    // => çakışma engellenir. Üzerine yazma (update) tamamen kapalı.
+    match /reservations/{id} {
+
+      // Giriş yapan herkes müsaitliği ve kapı numaralarını görebilir.
+      allow read: if girisli();
+
+      // Yalnızca kendi adına, doğru biçimde ve kimlik = TARİH_SAAT olacak şekilde.
+      allow create: if girisli()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['date', 'hour', 'uid', 'doorNumber', 'createdAt'])
+        && request.resource.data.date is string
+        && request.resource.data.hour is int
+        && request.resource.data.hour >= 0 && request.resource.data.hour <= 23
+        && request.resource.data.doorNumber is string
+        && id == request.resource.data.date + '_' + string(request.resource.data.hour);
+
+      // Dolu bir saatin üzerine yazmak yasak.
+      allow update: if false;
+
+      // Yalnızca rezervasyonu yapan kişi iptal edebilir.
+      allow delete: if girisli() && resource.data.uid == request.auth.uid;
+    }
+  }
+}

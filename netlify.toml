@@ -1,0 +1,19 @@
+[build]
+  publish = "."
+
+# Tek sayfalık uygulama: bilinmeyen yolları index.html'e yönlendir
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Service worker'ın güncel kalması için önbelleksiz servis et
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/config.js"
+  [headers.values]
+    Cache-Control = "no-cache"

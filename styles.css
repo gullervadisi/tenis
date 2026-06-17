@@ -1,0 +1,207 @@
+/* ============================================================
+   GÜLLER VADİSİ — Tenis Kortu Rezervasyon
+   Görsel kimlik: kortun gerçek renkleri — MAVİ zemin,
+   TERRACOTTA çevre (apron), BEYAZ kort çizgileri (imza).
+   ============================================================ */
+
+:root{
+  --court:        #4fa3cc;   /* kort mavisi (oyun zemini) */
+  --court-dark:   #2e6e8e;   /* koyu mavi (başlıklar) */
+  --court-deep:   #1f506a;
+  --line:         #ffffff;   /* kort çizgileri — imza */
+  --clay:         #b85742;   /* terracotta çevre — vurgu / birincil işlem */
+  --clay-deep:    #9c4634;
+  --clay-soft:    #f4ddd5;
+  --ink:          #18272e;
+  --ink-soft:     #566970;
+  --bg:           #edf1f3;   /* güneşli beton — açık nötr */
+  --panel:        #ffffff;
+  --panel-2:      #f1f6f8;
+  --busy-bg:      #eef1f2;
+  --busy-ink:     #6e7d83;
+  --danger:       #b23b3b;
+  --radius:       14px;
+  --shadow:       0 1px 2px rgba(31,80,106,.08), 0 8px 24px rgba(31,80,106,.10);
+  --shadow-soft:  0 1px 3px rgba(31,80,106,.10);
+  --ring:         0 0 0 3px rgba(184,87,66,.30);
+}
+
+*{ box-sizing: border-box; }
+html,body{ margin:0; padding:0; }
+
+body{
+  font-family:"Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--ink);
+  background: radial-gradient(1200px 600px at 50% -10%, #f4f8fa 0%, var(--bg) 60%);
+  min-height:100dvh; -webkit-font-smoothing:antialiased;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ---------- Üst bar ---------- */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:14px 18px; padding-top: calc(14px + env(safe-area-inset-top));
+  background: linear-gradient(180deg, var(--court) 0%, var(--court-dark) 100%);
+  color:#fff; position:sticky; top:0; z-index:20;
+  box-shadow:0 6px 18px rgba(31,80,106,.20);
+}
+.brand{ display:flex; flex-direction:column; line-height:1; }
+.brand-eyebrow{ font-size:10px; letter-spacing:.22em; font-weight:600; color: rgba(255,255,255,.78); }
+.brand-title{ font-family:"Sora",sans-serif; font-weight:700; font-size:19px; margin-top:4px; }
+.who{ display:flex; align-items:center; gap:10px; }
+.door-badge{
+  background: rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.32);
+  padding:6px 12px; border-radius:999px; font-size:13px; font-weight:600; white-space:nowrap;
+}
+
+/* ---------- Genel ---------- */
+.wrap{ max-width:760px; margin:0 auto; padding:18px 16px 120px; }
+
+/* ---------- Butonlar ---------- */
+.btn-primary{
+  appearance:none; border:none; cursor:pointer; font-family:inherit;
+  background: var(--clay); color:#fff; font-weight:600; font-size:15px;
+  padding:13px 18px; border-radius:12px;
+  transition: background .15s, transform .05s, opacity .15s;
+  box-shadow:0 6px 16px rgba(184,87,66,.28);
+}
+.btn-primary:hover{ background: var(--clay-deep); }
+.btn-primary:active{ transform: translateY(1px); }
+.btn-primary:disabled{ background:#c9d4d8; box-shadow:none; cursor:not-allowed; }
+
+.btn-ghost{
+  appearance:none; cursor:pointer; font-family:inherit; font-weight:600; font-size:14px;
+  background:transparent; color:inherit; border:1px solid rgba(255,255,255,.42);
+  padding:8px 14px; border-radius:10px; transition: background .15s;
+}
+.btn-ghost:hover{ background: rgba(255,255,255,.14); }
+
+/* ---------- Giriş ekranı ---------- */
+.auth{ display:flex; flex-direction:column; align-items:center; gap:18px; padding-top:26px; }
+.auth-card{
+  width:100%; max-width:420px; background: var(--panel); border-radius:20px;
+  box-shadow: var(--shadow); padding:30px 26px 26px; position:relative; overflow:hidden;
+  border:1px solid #e3eaed;
+}
+/* İmza: gerçek kort kesiti — terracotta çerçeve, mavi zemin, beyaz çizgiler */
+.court-mark{ height:92px; margin:-30px -26px 22px; position:relative; background: var(--clay); }
+.court-mark::before{   /* mavi oyun alanı */
+  content:""; position:absolute; inset:12px 22px; background: var(--court);
+}
+.court-mark::after{    /* beyaz dış çizgi + orta file */
+  content:""; position:absolute; inset:20px 30px;
+  border:2px solid var(--line);
+  box-shadow: inset 0 0 0 0 transparent;
+  background:
+    linear-gradient(var(--line),var(--line)) center/2px 100% no-repeat;
+}
+.auth-eyebrow{ margin:0; font-size:11px; letter-spacing:.2em; font-weight:600; color: var(--court-dark); }
+.auth-title{ font-family:"Sora",sans-serif; font-weight:700; font-size:30px; line-height:1.05; margin:6px 0 12px; }
+.auth-sub{ margin:0 0 22px; color: var(--ink-soft); font-size:14px; line-height:1.5; }
+
+.tabs{ display:flex; background: var(--panel-2); border-radius:12px; padding:4px; margin-bottom:18px; }
+.tab{
+  flex:1; appearance:none; border:none; background:transparent; cursor:pointer; font-family:inherit;
+  font-weight:600; font-size:14px; color: var(--ink-soft); padding:10px; border-radius:9px; transition: all .15s;
+}
+.tab.is-active{ background:#fff; color: var(--court-dark); box-shadow: var(--shadow-soft); }
+
+.auth-form{ display:flex; flex-direction:column; gap:14px; }
+.field{ display:flex; flex-direction:column; gap:6px; }
+.field > span{ font-size:13px; font-weight:600; }
+.field input{
+  font-family:inherit; font-size:16px; padding:12px 14px;
+  border:1px solid #d6e0e4; border-radius:11px; background:#fff; color: var(--ink);
+  transition: border-color .15s, box-shadow .15s;
+}
+.field input:focus{ outline:none; border-color: var(--clay); box-shadow: var(--ring); }
+.auth-form .btn-primary{ margin-top:6px; }
+.auth-msg{ margin:4px 2px 0; font-size:13.5px; min-height:18px; }
+.auth-msg.err{ color: var(--danger); }
+.auth-msg.ok{ color: var(--court-dark); }
+.footnote{ color: var(--ink-soft); font-size:12.5px; text-align:center; margin:0; }
+
+/* ---------- Pano ---------- */
+.board-head{ margin-bottom:14px; }
+.board-head h2{ font-family:"Sora",sans-serif; font-size:22px; margin:0 0 4px; }
+.board-hint{ margin:0; color: var(--ink-soft); font-size:13px; line-height:1.5; }
+.board-hint strong{ color: var(--clay-deep); }
+
+/* Gün seçici */
+.days{ display:flex; gap:8px; overflow-x:auto; padding:4px 2px 12px; margin:14px -2px 6px;
+  -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.days::-webkit-scrollbar{ display:none; }
+.day-chip{
+  flex:0 0 auto; min-width:62px; cursor:pointer; appearance:none; font-family:inherit;
+  background:#fff; border:1px solid #d9e3e7; border-radius:14px; padding:10px 8px;
+  display:flex; flex-direction:column; align-items:center; gap:2px; transition: all .15s; color: var(--ink);
+}
+.day-chip .dow{ font-size:11px; font-weight:600; color: var(--ink-soft); letter-spacing:.04em; }
+.day-chip .dnum{ font-family:"Sora",sans-serif; font-weight:700; font-size:18px; }
+.day-chip.is-active{ background: var(--court-dark); border-color: var(--court-dark); color:#fff;
+  box-shadow:0 6px 16px rgba(31,80,106,.24); }
+.day-chip.is-active .dow{ color: rgba(255,255,255,.82); }
+.day-chip.is-today .dnum::after{ content:""; display:block; width:5px; height:5px; border-radius:50%;
+  background: var(--clay); margin:3px auto 0; }
+.day-chip.is-active.is-today .dnum::after{ background:#fff; }
+
+/* Saat listesi */
+.slots{ display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+.slot{
+  display:flex; align-items:center; gap:14px; width:100%; padding:14px 16px; border-radius: var(--radius);
+  border:1px solid #dfe8eb; background:#fff; text-align:left; font-family:inherit; cursor:pointer;
+  transition: all .12s ease; color: var(--ink); position:relative;
+}
+.slot .time{ font-family:"Sora",sans-serif; font-weight:700; font-size:16px; min-width:104px; }
+.slot .state{ font-size:13.5px; color: var(--court-dark); font-weight:600; }
+.slot .pill{ margin-left:auto; font-size:12.5px; font-weight:600; padding:5px 11px; border-radius:999px;
+  background: var(--clay-soft); color: var(--clay-deep); white-space:nowrap; }
+
+.slot.free:hover{ border-color: var(--clay); box-shadow: var(--ring); }
+.slot.selected{ border-color: var(--clay); background: var(--clay-soft);
+  box-shadow:0 6px 16px rgba(184,87,66,.18); }
+.slot.selected .state{ color: var(--clay-deep); }
+
+.slot.busy{ background: var(--busy-bg); cursor:default; border-color:#e6ebed; }
+.slot.busy .time{ color: var(--busy-ink); }
+.slot.busy .state{ color: var(--busy-ink); font-weight:500; }
+.slot.busy .pill{ background:#e3e8ea; color: var(--busy-ink); }
+
+.slot.mine{ background:#fff; border-color: var(--court); }
+.slot.mine .time{ color: var(--court-dark); }
+.slot.mine .state{ color: var(--court-dark); }
+.slot.mine .pill{ background: var(--court); color:#fff; }
+.slot .cancel{ margin-left:auto; appearance:none; border:1px solid var(--danger); color: var(--danger);
+  background:#fff; font-family:inherit; font-weight:600; font-size:12.5px; padding:6px 12px;
+  border-radius:999px; cursor:pointer; transition: all .12s; }
+.slot .cancel:hover{ background: var(--danger); color:#fff; }
+
+.slot.past{ opacity:.45; cursor:default; }
+.slot.past .state{ color: var(--ink-soft); font-weight:500; }
+.slot:focus-visible{ outline:none; box-shadow: var(--ring); }
+
+/* Alt aksiyon çubuğu */
+.actionbar{
+  position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; align-items:center; gap:12px;
+  padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+  background: rgba(255,255,255,.94); backdrop-filter: blur(8px);
+  border-top:1px solid #dfe8eb; box-shadow:0 -8px 24px rgba(31,80,106,.10);
+}
+.actionbar-info{ flex:1; font-size:14px; font-weight:600; }
+.actionbar-info small{ display:block; font-weight:500; color: var(--ink-soft); font-size:12px; }
+.actionbar-buttons{ display:flex; gap:10px; }
+.actionbar .btn-ghost{ border-color:#d6e0e4; color: var(--ink-soft); }
+.actionbar .btn-ghost:hover{ background: var(--panel-2); }
+
+/* Toast */
+.toast{
+  position:fixed; left:50%; bottom:96px; transform: translateX(-50%);
+  background: var(--court-deep); color:#fff; padding:12px 18px; border-radius:12px; font-size:14px;
+  font-weight:500; z-index:50; box-shadow:0 10px 30px rgba(0,0,0,.25); max-width:90vw; text-align:center;
+  animation: toast-in .25s ease;
+}
+.toast.err{ background: var(--danger); }
+@keyframes toast-in{ from{ opacity:0; transform: translate(-50%,8px);} to{ opacity:1; transform: translate(-50%,0);} }
+
+@media (min-width:720px){ .auth{ padding-top:56px; } .slot .time{ min-width:120px; } }
+@media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }

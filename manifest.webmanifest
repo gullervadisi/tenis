@@ -1,0 +1,25 @@
+{
+  "name": "Güller Vadisi Tenis Kortu",
+  "short_name": "Tenis Kortu",
+  "description": "Ben Güller Vadisi Sitesi tenis kortu rezervasyon uygulaması",
+  "lang": "tr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1f506a",
+  "theme_color": "#2e6e8e",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
