@@ -125,9 +125,11 @@ $("auth-form").addEventListener("submit", async (e) => {
       await setDoc(doc(db, "users", cred.user.uid), {
         doorNumber: doorDisplay(doorRaw), createdAt: serverTimestamp()
       });
+      saveCred(doorRaw, pin);
       toast("Hoş geldiniz! Kaydınız oluşturuldu.");
     } else {
       await signInWithEmailAndPassword(auth, synem, pw);
+      saveCred(doorRaw, pin);
     }
   } catch (err) {
     msg.classList.add("err");
@@ -147,13 +149,46 @@ function turkceHata(err, isReg) {
   return "Bir sorun oluştu: " + (err.message || "bilinmeyen hata");
 }
 
-$("signout-btn").addEventListener("click", () => { if (auth) signOut(auth); });
+function saveCred(door, pin) {
+  try { localStorage.setItem("gv_cred", JSON.stringify({ door: door, pin: pin })); } catch (e) { /* yoksay */ }
+}
+
+$("signout-btn").addEventListener("click", () => {
+  try { localStorage.removeItem("gv_cred"); } catch (e) { /* yoksay */ }
+  autoTried = true; // çıkıştan sonra otomatik giriş denenmesin
+  if (auth) signOut(auth);
+});
 
 /* ====================== Oturum dinleyici ====================== */
+let autoTried = false;
+
+// Firebase oturumu silinmişse (özellikle iPhone'da olabilir) cihazda
+// kayıtlı bilgiyle sessizce tekrar giriş dener.
+async function tryAutoLogin() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem("gv_cred") || "null"); } catch (e) { saved = null; }
+  if (!saved || !saved.door || !saved.pin) return false;
+  try {
+    state.enteredDoor = doorDisplay(saved.door);
+    await signInWithEmailAndPassword(auth, synthEmail(saved.door), derivePassword(saved.pin));
+    return true; // onAuthStateChanged yeniden, kullanıcıyla tetiklenecek
+  } catch (e) {
+    try { localStorage.removeItem("gv_cred"); } catch (_) { /* yoksay */ }
+    return false;
+  }
+}
+
 if (auth) {
   onAuthStateChanged(auth, async (user) => {
-    if (user) { state.user = user; await afterLogin(); }
-    else { state.user = null; if (unsub) { unsub(); unsub = null; } showAuth(); }
+    if (user) { state.user = user; await afterLogin(); return; }
+    state.user = null;
+    if (unsub) { unsub(); unsub = null; }
+    if (!autoTried) {
+      autoTried = true;
+      const ok = await tryAutoLogin();
+      if (ok) return; // giriş başarılı; ekranı dinleyici tekrar çizecek
+    }
+    showAuth();
   });
 }
 
