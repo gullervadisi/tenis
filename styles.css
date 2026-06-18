@@ -110,6 +110,12 @@ body{
 .field input::placeholder{ color:#b3bdb9; opacity:1; }
 .field input:focus{ outline:none; border-color: var(--clay); box-shadow: var(--ring); }
 .auth-form .btn-primary{ margin-top:6px; }
+.auth-switch{
+  appearance:none; background:transparent; border:none; cursor:pointer;
+  font-family:inherit; font-size:13.5px; font-weight:600; color: var(--court-dark);
+  text-decoration:underline; text-underline-offset:3px; padding:4px; margin-top:2px;
+}
+.auth-switch:hover{ color: var(--clay); }
 .auth-msg{ margin:4px 2px 0; font-size:13.5px; min-height:18px; }
 .auth-msg.err{ color: var(--danger); }
 .auth-msg.ok{ color: var(--court-dark); }

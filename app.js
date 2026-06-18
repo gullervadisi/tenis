@@ -72,8 +72,23 @@ function toast(msg, isErr) {
   toast._t = setTimeout(() => { t.hidden = true; }, 3600);
 }
 
-/* ====================== Giriş = Kayıt (tek form) ====================== */
-// Kapı no + 4 haneli şifre. İlk kez giren otomatik kaydolur; sonra giriş yapar.
+/* ====================== Kayıt / Giriş ====================== */
+// Cihaz daha önce kullanıldıysa "Giriş", ilk kez ise "Kayıt" öne çıkar.
+function setMode(mode) {
+  state.mode = mode;
+  const isReg = mode === "register";
+  $("auth-submit").textContent = isReg ? "Kayıt ol" : "Giriş yap";
+  $("auth-switch").textContent = isReg
+    ? "Hesabınız var mı? Giriş yapın"
+    : "Başka bir kapı numarasıyla kayıt olun";
+  $("auth-msg").className = "auth-msg";
+  $("auth-msg").textContent = "";
+}
+
+$("auth-switch").addEventListener("click", () => {
+  setMode(state.mode === "register" ? "login" : "register");
+});
+
 $("auth-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!auth) return;
@@ -84,46 +99,52 @@ $("auth-form").addEventListener("submit", async (e) => {
   msg.className = "auth-msg";
   msg.textContent = "";
 
-  if (!doorKey(doorRaw)) { msg.classList.add("err"); msg.textContent = "Kapı numaranı gir (örn. 8B)."; return; }
-  if (!/^\d{4}$/.test(pin)) { msg.classList.add("err"); msg.textContent = "Şifre 4 haneli rakam olmalı."; return; }
+  if (!doorKey(doorRaw)) { msg.classList.add("err"); msg.textContent = "Kapı numaranızı girin (örn. 8B)."; return; }
+  if (!/^\d{4}$/.test(pin)) { msg.classList.add("err"); msg.textContent = "Şifreniz 4 haneli rakam olmalıdır."; return; }
 
   state.enteredDoor = doorDisplay(doorRaw);
   const synem = synthEmail(doorRaw);
   const pw = derivePassword(pin);
+  const isReg = state.mode === "register";
   btn.disabled = true;
-  btn.textContent = "Lütfen bekle…";
+  btn.textContent = "Lütfen bekleyin…";
   try {
-    try {
-      // Önce kaydolmayı dene (bu kapı ilk kez giriyorsa)
-      const cred = await createUserWithEmailAndPassword(auth, synem, pw);
+    if (isReg) {
+      let cred;
+      try {
+        cred = await createUserWithEmailAndPassword(auth, synem, pw);
+      } catch (e2) {
+        if (e2 && e2.code && e2.code.includes("email-already-in-use")) {
+          setMode("login");
+          msg.classList.add("err");
+          msg.textContent = "Bu kapı numarası zaten kayıtlı. Lütfen giriş yapın.";
+          return;
+        }
+        throw e2;
+      }
       await setDoc(doc(db, "users", cred.user.uid), {
         doorNumber: doorDisplay(doorRaw), createdAt: serverTimestamp()
       });
-      toast("Hoş geldin! Kaydın oluşturuldu.");
-    } catch (e2) {
-      // Kapı zaten kayıtlıysa giriş yap
-      if (e2 && e2.code && e2.code.includes("email-already-in-use")) {
-        await signInWithEmailAndPassword(auth, synem, pw);
-      } else {
-        throw e2;
-      }
+      toast("Hoş geldiniz! Kaydınız oluşturuldu.");
+    } else {
+      await signInWithEmailAndPassword(auth, synem, pw);
     }
   } catch (err) {
     msg.classList.add("err");
-    msg.textContent = turkceHata(err);
+    msg.textContent = turkceHata(err, isReg);
   } finally {
     btn.disabled = false;
-    btn.textContent = "Giriş yap";
+    btn.textContent = state.mode === "register" ? "Kayıt ol" : "Giriş yap";
   }
 });
 
-function turkceHata(err) {
+function turkceHata(err, isReg) {
   const c = (err && err.code) ? err.code : "";
   if (c.includes("invalid-credential") || c.includes("wrong-password") || c.includes("user-not-found"))
-    return "Kapı numarası veya şifre hatalı.";
-  if (c.includes("too-many-requests")) return "Çok fazla deneme. Biraz sonra tekrar dene.";
-  if (c.includes("network")) return "İnternet bağlantısı sorunlu görünüyor.";
-  return "Bir sorun oldu: " + (err.message || "bilinmeyen hata");
+    return isReg ? "Bilgiler hatalı görünüyor." : "Kapı numaranız veya şifreniz hatalı. Kaydınız yoksa “kayıt olun”.";
+  if (c.includes("too-many-requests")) return "Çok fazla deneme yapıldı. Lütfen biraz sonra tekrar deneyin.";
+  if (c.includes("network")) return "İnternet bağlantınız sorunlu görünüyor.";
+  return "Bir sorun oluştu: " + (err.message || "bilinmeyen hata");
 }
 
 $("signout-btn").addEventListener("click", () => { if (auth) signOut(auth); });
@@ -137,6 +158,7 @@ if (auth) {
 }
 
 async function afterLogin() {
+  try { localStorage.setItem("gv_seen", "1"); } catch (e) { /* yoksay */ }
   let door = state.enteredDoor || "?";
   try {
     const snap = await getDoc(doc(db, "users", state.user.uid));
@@ -161,7 +183,9 @@ function showAuth() {
   $("actionbar").hidden = true;
   $("f-door").value = "";
   $("f-password").value = "";
-  $("auth-msg").textContent = "";
+  try {
+    setMode(localStorage.getItem("gv_seen") === "1" ? "login" : "register");
+  } catch (e) { setMode("login"); }
   window.scrollTo(0, 0);
 }
 function showBoard() {
@@ -286,7 +310,7 @@ function toggleSelect(h) {
     state.selection = [sel[0], h].sort((a, b) => a - b);
   } else {
     state.selection = [h];
-    toast("En fazla 2 yan yana saat seçebilirsin. Yeni seçim başlatıldı.");
+    toast("En fazla 2 yan yana saat seçebilirsiniz. Yeni seçim başlatıldı.");
   }
   renderSlots(); updateActionbar();
 }
@@ -316,8 +340,8 @@ async function reserve() {
   const myHoursToday = Array.from(state.reservations.values())
     .filter((r) => r.date === date && r.uid === state.user.uid).length;
   if (myHoursToday + hrs.length > 2) {
-    toast("Aynı gün en fazla 2 saat rezerve edebilirsin" +
-      (myHoursToday ? " (bugün zaten " + myHoursToday + " saatin var)." : "."), true);
+    toast("Aynı gün en fazla 2 saat rezerve edebilirsiniz" +
+      (myHoursToday ? " (bugün zaten " + myHoursToday + " saatiniz var)." : "."), true);
     btn.disabled = state.selection.length === 0;
     return;
   }
@@ -338,7 +362,7 @@ async function reserve() {
     toast("Rezervasyon alındı. İyi oyunlar!");
     state.selection = []; updateActionbar();
   } catch (err) {
-    if (err.message === "DOLU") toast("Üzgünüm, seçtiğin saatlerden biri az önce dolduruldu.", true);
+    if (err.message === "DOLU") toast("Üzgünüz, seçtiğiniz saatlerden biri az önce dolduruldu.", true);
     else toast("Rezervasyon yapılamadı: " + (err.message || ""), true);
   }
   btn.disabled = state.selection.length === 0;
@@ -346,7 +370,7 @@ async function reserve() {
 
 /* ====================== İptal ====================== */
 async function cancelReservation(res) {
-  if (!confirm("Bu rezervasyonu iptal etmek istediğine emin misin?")) return;
+  if (!confirm("Bu rezervasyonu iptal etmek istediğinize emin misiniz?")) return;
   try {
     await deleteDoc(doc(db, "reservations", res.id));
     toast("Rezervasyon iptal edildi.");
@@ -356,6 +380,10 @@ async function cancelReservation(res) {
 }
 
 /* ====================== Başlangıç ====================== */
+// Cihaz daha önce kullanıldıysa Giriş, ilk kez ise Kayıt modunu öne çıkar.
+try {
+  setMode(localStorage.getItem("gv_seen") === "1" ? "login" : "register");
+} catch (e) { setMode("register"); }
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
