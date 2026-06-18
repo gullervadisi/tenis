@@ -72,26 +72,11 @@ function toast(msg, isErr) {
   toast._t = setTimeout(() => { t.hidden = true; }, 3600);
 }
 
-/* ====================== Giriş / Kayıt ekranı ====================== */
-function setMode(mode) {
-  state.mode = mode;
-  const isReg = mode === "register";
-  $("tab-login").classList.toggle("is-active", !isReg);
-  $("tab-register").classList.toggle("is-active", isReg);
-  $("email-field").hidden = !isReg;        // e-posta yalnızca kayıtta
-  $("f-email").required = isReg;
-  $("login-foot").hidden = isReg;          // "şifreni unuttuysan" yalnızca girişte
-  $("auth-submit").textContent = isReg ? "Kayıt ol" : "Giriş yap";
-  $("auth-msg").textContent = "";
-}
-
-$("tab-login").addEventListener("click", () => setMode("login"));
-$("tab-register").addEventListener("click", () => setMode("register"));
-
+/* ====================== Giriş = Kayıt (tek form) ====================== */
+// Kapı no + 4 haneli şifre. İlk kez giren otomatik kaydolur; sonra giriş yapar.
 $("auth-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!auth) return;
-  const email = $("f-email").value.trim();
   const doorRaw = $("f-door").value.trim();
   const pin = $("f-password").value.trim();
   const msg = $("auth-msg");
@@ -101,36 +86,39 @@ $("auth-form").addEventListener("submit", async (e) => {
 
   if (!doorKey(doorRaw)) { msg.classList.add("err"); msg.textContent = "Kapı numaranı gir (örn. 8B)."; return; }
   if (!/^\d{4}$/.test(pin)) { msg.classList.add("err"); msg.textContent = "Şifre 4 haneli rakam olmalı."; return; }
-  if (state.mode === "register" && (!email || !email.includes("@"))) {
-    msg.classList.add("err"); msg.textContent = "Geçerli bir e-posta gir."; return;
-  }
 
   state.enteredDoor = doorDisplay(doorRaw);
+  const synem = synthEmail(doorRaw);
+  const pw = derivePassword(pin);
   btn.disabled = true;
   btn.textContent = "Lütfen bekle…";
   try {
-    if (state.mode === "register") {
-      const cred = await createUserWithEmailAndPassword(auth, synthEmail(doorRaw), derivePassword(pin));
+    try {
+      // Önce kaydolmayı dene (bu kapı ilk kez giriyorsa)
+      const cred = await createUserWithEmailAndPassword(auth, synem, pw);
       await setDoc(doc(db, "users", cred.user.uid), {
-        email: email, doorNumber: doorDisplay(doorRaw), createdAt: serverTimestamp()
+        doorNumber: doorDisplay(doorRaw), createdAt: serverTimestamp()
       });
-      toast("Hesap başarıyla oluşturuldu. Hoş geldin!");
-      // (İstenirse buraya hoş geldin e-postası gönderimi -EmailJS- eklenebilir.)
-    } else {
-      await signInWithEmailAndPassword(auth, synthEmail(doorRaw), derivePassword(pin));
+      toast("Hoş geldin! Kaydın oluşturuldu.");
+    } catch (e2) {
+      // Kapı zaten kayıtlıysa giriş yap
+      if (e2 && e2.code && e2.code.includes("email-already-in-use")) {
+        await signInWithEmailAndPassword(auth, synem, pw);
+      } else {
+        throw e2;
+      }
     }
   } catch (err) {
     msg.classList.add("err");
     msg.textContent = turkceHata(err);
   } finally {
     btn.disabled = false;
-    btn.textContent = state.mode === "register" ? "Kayıt ol" : "Giriş yap";
+    btn.textContent = "Giriş yap";
   }
 });
 
 function turkceHata(err) {
   const c = (err && err.code) ? err.code : "";
-  if (c.includes("email-already-in-use")) return "Bu kapı numarası zaten kayıtlı. Giriş yap sekmesini kullan.";
   if (c.includes("invalid-credential") || c.includes("wrong-password") || c.includes("user-not-found"))
     return "Kapı numarası veya şifre hatalı.";
   if (c.includes("too-many-requests")) return "Çok fazla deneme. Biraz sonra tekrar dene.";
@@ -149,9 +137,6 @@ if (auth) {
 }
 
 async function afterLogin() {
-  $("brand-eyebrow").textContent = (CFG.SITE_ADI || "GÜLLER VADİSİ").toUpperCase();
-  $("brand-title").textContent = CFG.KORT_ADI || "Tenis Kortu";
-
   let door = state.enteredDoor || "?";
   try {
     const snap = await getDoc(doc(db, "users", state.user.uid));
@@ -161,6 +146,7 @@ async function afterLogin() {
   $("door-badge").textContent = "Kapı " + door;
 
   showBoard();
+  window.scrollTo(0, 0);
   buildDates();
   state.selectedDate = state.dates[0];
   listenReservations();
@@ -173,6 +159,10 @@ function showAuth() {
   $("auth-view").hidden = false;
   $("board-view").hidden = true;
   $("actionbar").hidden = true;
+  $("f-door").value = "";
+  $("f-password").value = "";
+  $("auth-msg").textContent = "";
+  window.scrollTo(0, 0);
 }
 function showBoard() {
   $("topbar").hidden = false;
@@ -366,7 +356,6 @@ async function cancelReservation(res) {
 }
 
 /* ====================== Başlangıç ====================== */
-setMode("login");
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));

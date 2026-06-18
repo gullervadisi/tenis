@@ -27,6 +27,7 @@
 }
 
 *{ box-sizing: border-box; }
+[hidden]{ display: none !important; }   /* 'hidden' her zaman gizlesin */
 html,body{ margin:0; padding:0; }
 
 body{
@@ -45,10 +46,9 @@ body{
   color:#fff; position:sticky; top:0; z-index:20;
   box-shadow:0 6px 18px rgba(31,80,106,.20);
 }
-.brand{ display:flex; flex-direction:column; line-height:1; }
-.brand-eyebrow{ font-size:10px; letter-spacing:.22em; font-weight:600; color: rgba(255,255,255,.78); }
-.brand-title{ font-family:"Sora",sans-serif; font-weight:700; font-size:19px; margin-top:4px; }
-.who{ display:flex; align-items:center; gap:10px; }
+.brand{ display:flex; flex-direction:column; line-height:1; min-width:0; }
+.brand-title{ font-family:"Sora",sans-serif; font-weight:700; font-size:16px; letter-spacing:.04em; }
+.who{ display:flex; align-items:center; gap:10px; flex:none; }
 .door-badge{
   background: rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.32);
   padding:6px 12px; border-radius:999px; font-size:13px; font-weight:600; white-space:nowrap;
@@ -95,16 +95,9 @@ body{
   background:
     linear-gradient(var(--line),var(--line)) center/2px 100% no-repeat;
 }
-.auth-eyebrow{ margin:0; font-size:11px; letter-spacing:.2em; font-weight:600; color: var(--court-dark); }
-.auth-title{ font-family:"Sora",sans-serif; font-weight:700; font-size:30px; line-height:1.05; margin:6px 0 12px; }
+.auth-title{ font-family:"Sora",sans-serif; font-weight:700; font-size:26px; letter-spacing:.02em; line-height:1.1; margin:8px 0 4px; color: var(--court-dark); }
+.auth-app-sub{ margin:0 0 14px; font-family:"Sora",sans-serif; font-weight:600; font-size:12px; letter-spacing:.18em; color: var(--ink-soft); }
 .auth-sub{ margin:0 0 22px; color: var(--ink-soft); font-size:14px; line-height:1.5; }
-
-.tabs{ display:flex; background: var(--panel-2); border-radius:12px; padding:4px; margin-bottom:18px; }
-.tab{
-  flex:1; appearance:none; border:none; background:transparent; cursor:pointer; font-family:inherit;
-  font-weight:600; font-size:14px; color: var(--ink-soft); padding:10px; border-radius:9px; transition: all .15s;
-}
-.tab.is-active{ background:#fff; color: var(--court-dark); box-shadow: var(--shadow-soft); }
 
 .auth-form{ display:flex; flex-direction:column; gap:14px; }
 .field{ display:flex; flex-direction:column; gap:6px; }
