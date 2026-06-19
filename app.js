@@ -334,18 +334,29 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-/* ====================== Seçim mantığı (1–2 ardışık saat) ====================== */
+/* ====================== Seçim mantığı (1–3 ardışık saat) ====================== */
 function toggleSelect(h) {
   const sel = state.selection;
   if (sel.includes(h)) {
-    state.selection = sel.filter((x) => x !== h);
+    // Yalnız uçtaki saat kaldırılır; ortadakine basılırsa o saatten yeniden başlar
+    if (h === sel[0] || h === sel[sel.length - 1]) {
+      state.selection = sel.filter((x) => x !== h);
+    } else {
+      state.selection = [h];
+    }
   } else if (sel.length === 0) {
     state.selection = [h];
-  } else if (sel.length === 1 && Math.abs(sel[0] - h) === 1) {
-    state.selection = [sel[0], h].sort((a, b) => a - b);
   } else {
-    state.selection = [h];
-    toast("En fazla 2 yan yana saat seçebilirsiniz. Yeni seçim başlatıldı.");
+    const min = sel[0], max = sel[sel.length - 1];
+    const bitisik = (h === min - 1 || h === max + 1);
+    if (bitisik && sel.length < 3) {
+      state.selection = [...sel, h].sort((a, b) => a - b);
+    } else if (bitisik) {
+      state.selection = [h];
+      toast("En fazla 3 yan yana saat seçebilirsiniz. Yeni seçim başlatıldı.");
+    } else {
+      state.selection = [h]; // bitişik değil → yeni seçim başlat
+    }
   }
   renderSlots(); updateActionbar();
 }
@@ -371,11 +382,11 @@ async function reserve() {
   const hrs = state.selection.slice().sort((a, b) => a - b);
   const date = state.selectedDate;
 
-  // Günlük sınır: bir kişi aynı günde en fazla 2 saat tutabilir.
+  // Günlük sınır: bir kişi aynı günde en fazla 3 saat tutabilir.
   const myHoursToday = Array.from(state.reservations.values())
     .filter((r) => r.date === date && r.uid === state.user.uid).length;
-  if (myHoursToday + hrs.length > 2) {
-    toast("Aynı gün en fazla 2 saat rezerve edebilirsiniz" +
+  if (myHoursToday + hrs.length > 3) {
+    toast("Aynı gün en fazla 3 saat rezerve edebilirsiniz" +
       (myHoursToday ? " (bugün zaten " + myHoursToday + " saatiniz var)." : "."), true);
     btn.disabled = state.selection.length === 0;
     return;
